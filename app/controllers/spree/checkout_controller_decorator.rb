@@ -3,7 +3,7 @@ module Spree
     # If we're currently in the checkout
     def update
       if payment_params_valid? && paying_with_mollie?
-        if @order.update_from_params(params, permitted_checkout_attributes, request.headers.env)
+        if OrderUpdateAttributes.new(@order, update_params, request_env: request.headers.env).apply
           payment = @order.payments.last
           payment.process!
           mollie_payment_url = payment.payment_source.payment_url
