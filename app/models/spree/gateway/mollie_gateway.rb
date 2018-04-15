@@ -5,11 +5,6 @@ module Spree
 
     has_many :spree_mollie_payment_sources, class_name: 'Spree::MolliePaymentSource'
 
-    # Only enable one-click payments if spree_auth_devise is installed
-    def self.allow_one_click_payments?
-      Gem.loaded_specs.has_key?('spree_auth_devise')
-    end
-
     def payment_source_class
       Spree::MolliePaymentSource
     end
@@ -56,17 +51,6 @@ module Spree
       end
     end
 
-    # Create a Mollie customer which can be passed with a payment.
-    # Required for one-click Mollie payments.
-    def create_customer(user)
-      customer = Mollie::Customer.create(
-          email: user.email,
-          api_key: get_preference(:api_key),
-          )
-      MollieLogger.debug("Created a Mollie Customer for Spree user with ID #{customer.id}")
-      customer
-    end
-
     def prepare_payment_params(money_in_cents, source, gateway_options)
       spree_routes = ::Spree::Core::Engine.routes.url_helpers
       order_number = gateway_options[:order_id]
@@ -95,25 +79,6 @@ module Spree
       order_params.merge! ({
         issuer: source.issuer
       })
-
-      if customer_id.present?
-        if source.payment_method_name.match(Regexp.union([::Mollie::Method::BITCOIN, ::Mollie::Method::BANKTRANSFER, ::Mollie::Method::GIFTCARD]))
-          order_params.merge! ({
-              billingEmail: gateway_options[:email]
-          })
-        end
-
-        if Spree::Gateway::MollieGateway.allow_one_click_payments?
-          mollie_customer_id = Spree.user_class.find(customer_id).try(:mollie_customer_id)
-
-          # Allow one-click payments by passing Mollie customer ID.
-          if mollie_customer_id.present?
-            order_params.merge! ({
-                customerId: mollie_customer_id
-            })
-          end
-        end
-      end
 
       order_params
     end
