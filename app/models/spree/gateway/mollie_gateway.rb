@@ -128,7 +128,7 @@ module Spree
         when 'paid'
           payment.complete! unless payment.completed?
           payment.order.finalize!
-          payment.order.update_attributes(:state => 'complete', :completed_at => Time.now)
+          payment.order.update(state:'complete', completed_at: Time.now)
         when 'cancelled', 'expired', 'failed'
           payment.failure! unless payment.failed?
         when 'refunded'
