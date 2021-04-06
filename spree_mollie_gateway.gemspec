@@ -43,6 +43,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'mysql2'
   spec.add_development_dependency 'coffee-rails'
   spec.add_development_dependency 'database_cleaner'
-
-  spec.add_runtime_dependency 'mollie-api-ruby'
 end
